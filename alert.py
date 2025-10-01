@@ -181,12 +181,6 @@ def getURL(url):
 def getTime():
 	return int(time.time())
 
-# def sschartspage():
-# 	driver = webdriver.Chrome()
-# 	driver.get(chartStats)
-# 	driver.get_screenshot_as_file("chart.png")
-# 	driver.quit()
-
 start = getTime() # time the app was started
 
 if __name__ == "__main__":
