@@ -4,12 +4,13 @@ import requests
 import time
 import json
 import datetime
-from selenium import webdriver
+# from selenium import webdriver
 from datetime import date
 
 lastHash = "" # latest hash in the chain
-hashTime = 0 # time since the last block
-lastBlock = {} # latest block as dict
+hashTime = 0 # latest blocks time
+prevTime = 0 # prev block time
+block = {} # latest block as dict
 blockInterval = 0.0
 debug = False
 verbose = False
@@ -27,23 +28,43 @@ endpoints = {
 if len(endpoints) == 1:
 	logInterval = queryInterval
 
-def main():
-	global lastHash, lastBlock
-	# sschartspage()
-	print("Started at {0} | {1}".format(start, date.fromtimestamp(start).ctime()))
+def init():
+	global lastHash, block
 	lastHash = getLatestHash()
 	block = getBlockData(lastHash)
-	lastBlock = json.loads(block)
-	extractData(lastBlock)
+
+def main():
+	global lastHash, block, hashTime
+	print("Started at {0} | {1}".format(start, date.fromtimestamp(start).ctime()))
+	init()
 	while True:
-		LogAll()
+		monitor(lastHash)
 		time.sleep(logInterval)
 
-def extractData(data):
-	global hashTime
+def getBlockTime(data):
 	for x in data:
 		if x == "time":
-			hashTime = lastBlock[x]
+			return block[x]
+
+def monitor(hash):
+	global block, hashTime, lastHash, prevTime
+	t = getTime()
+	block = getBlockData(hash)
+	if len(block["next_block"]) == 0:
+		hashTime = block["time"]
+		if prevTime != 0 and prevTime != hashTime:
+			logBlock()
+			# print("{0} prev {1} hashtime".format(prevTime, hashTime))
+			since = hashTime - prevTime
+			print("Since last hash: {0}".format(since))
+			logHashTime(since)
+			prevTime = hashTime
+	else:
+		hash = block["next_block"][0]
+		prevTime = block["time"]
+		print(hash)
+		lastHash = hash
+		hashTime = prevTime
 
 def LogAll():
 	global lastHash
@@ -59,7 +80,6 @@ def LogAll():
 		if len(endpoints) > 1:
 			time.sleep(queryInterval)
 
-
 """ Update block and calc block time """
 def updateData(text):
 	global lastHash, hashTime, blockInterval
@@ -69,7 +89,7 @@ def updateData(text):
 	blockInterval = getInterval()
 	if verbose:
 		print("Interval: {0}".format(blockInterval))
-	newTime = getBlockTime(lastBlock)
+	newTime = getBlockTime(block)
 	since = newTime-hashTime
 	print("Since last hash: {0}".format(since))
 	logHashTime(since)
@@ -77,7 +97,7 @@ def updateData(text):
 
 def logBlock():
 	with open("blocks.log", mode="+a") as file:
-		file.write(json.dumps(lastBlock))
+		file.write(json.dumps(block))
 
 def logAlert(t, x, text):
 	with open("alerts.log", mode="+a") as file:
@@ -90,17 +110,17 @@ def logHashTime(since):
 		file.write("\n")
 
 def updateBlockData(hash):
-	global lastBlock
+	global block
 	data = getBlockData(hash)
 	try:
-		lastBlock = json.loads(data)
+		block = json.loads(data)
 	except:
 		print(data)
 
 """ Single block data (JSON) 
 top level keys:
 bits
-next_block
+next_block[0]
 fee
 nonce
 n_tx
@@ -114,26 +134,25 @@ tx
 def getBlockData(hash):
 	data = getURL("https://blockchain.info/rawblock/{0}".format(hash))
 	if data.status_code == 200:
-		return data.text
+		return json.loads(data.text)
 	elif data.status_code == 404: # block not fully processed
 		time.sleep(queryInterval*5)
 		return getBlockData(hash)
 	else:
 		print("Bad status:", data, data.text)
 
-def getBlockTime(block, net=False):
-	global lastBlock
+def getBlockTime(bblock, net=False):
+	global block
 	if net == False:
 		return block["time"]
 	else:
-		data = getBlockData(hash)
-		if data == None:
+		block = getBlockData(hash)
+		if block == None:
 			return
-		lastBlock = json.loads(data)
 		try:
-			return lastBlock["time"]
+			return block["time"]
 		except:
-			print("Bad: {0}", lastBlock)
+			print("Bad: {0}", block)
 			return
 
 """ Average time between blocks in seconds """
@@ -162,11 +181,11 @@ def getURL(url):
 def getTime():
 	return int(time.time())
 
-def sschartspage():
-	driver = webdriver.Chrome()
-	driver.get(chartStats)
-	driver.get_screenshot_as_file("chart.png")
-	driver.quit()
+# def sschartspage():
+# 	driver = webdriver.Chrome()
+# 	driver.get(chartStats)
+# 	driver.get_screenshot_as_file("chart.png")
+# 	driver.quit()
 
 start = getTime() # time the app was started
 
