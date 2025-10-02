@@ -38,7 +38,10 @@ def main():
 	print("Started at {0} | {1}".format(start, date.fromtimestamp(start).ctime()))
 	init()
 	while True:
-		monitor(lastHash)
+		try:
+			monitor(lastHash)
+		except Exception as e:
+			print("Except:", e)
 		time.sleep(logInterval)
 
 def getBlockTime(data):
