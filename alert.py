@@ -53,6 +53,7 @@ def monitor(hash):
 	global block, hashTime, lastHash, prevTime
 	t = getTime()
 	block = getBlockData(hash)
+	# not working properly
 	if len(block["next_block"]) == 0:
 		hashTime = block["time"]
 		if prevTime != 0 and prevTime != hashTime:
