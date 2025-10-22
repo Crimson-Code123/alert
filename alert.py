@@ -54,9 +54,9 @@ def monitor(hash):
 	t = getTime()
 	block = getBlockData(hash)
 	# not working properly
-	if len(block["next_block"]) == 0:
-		hashTime = block["time"]
-		if prevTime != 0 and prevTime != hashTime:
+	if len(block["next_block"]) == 0: # current block
+		hashTime = block["time"] # update time
+		if prevTime != 0 and prevTime != hashTime: # 
 			logBlock()
 			# print("{0} prev {1} hashtime".format(prevTime, hashTime))
 			since = hashTime - prevTime
@@ -65,10 +65,10 @@ def monitor(hash):
 			prevTime = hashTime
 	else:
 		hash = block["next_block"][0]
-		prevTime = block["time"]
-		print(hash)
 		lastHash = hash
-		hashTime = prevTime
+		print(hash)
+		prevTime = block["time"]
+		# prevTime = hashTime
 
 def LogAll():
 	global lastHash
@@ -136,6 +136,7 @@ weight
 tx
 """
 def getBlockData(hash):
+	retries = 0
 	data = getURL("https://blockchain.info/rawblock/{0}".format(hash))
 	if data.status_code == 200:
 		return json.loads(data.text)
