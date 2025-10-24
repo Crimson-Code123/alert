@@ -4,7 +4,6 @@ import requests
 import time
 import json
 import datetime
-# from selenium import webdriver
 from datetime import date
 
 lastHash = "" # latest hash in the chain
@@ -12,7 +11,7 @@ hashTime = 0 # latest blocks time
 prevTime = 0 # prev block time
 block = {} # latest block as dict
 blockInterval = 0.0
-debug = False
+debug = True
 verbose = False
 logInterval = 30 # interval to log in seconds
 queryInterval = 15 # seconds between each query
@@ -32,6 +31,7 @@ def init():
 	global lastHash, block
 	lastHash = getLatestHash()
 	block = getBlockData(lastHash)
+	time.sleep(5)
 
 def main():
 	global lastHash, block, hashTime
@@ -60,15 +60,18 @@ def monitor(hash):
 			logBlock()
 			# print("{0} prev {1} hashtime".format(prevTime, hashTime))
 			since = hashTime - prevTime
-			print("Since last hash: {0}".format(since))
+			tsprint("Since last hash: {0} seconds".format(since))
 			logHashTime(since)
 			prevTime = hashTime
 	else:
 		hash = block["next_block"][0]
 		lastHash = hash
-		print(hash)
+		tsprint("New block: {0}".format(hash))
 		prevTime = block["time"]
 		# prevTime = hashTime
+
+def tsprint(text):
+	print("{0} | {1}".format(getTime(), text))
 
 def LogAll():
 	global lastHash
@@ -137,7 +140,10 @@ tx
 """
 def getBlockData(hash):
 	retries = 0
-	data = getURL("https://blockchain.info/rawblock/{0}".format(hash))
+	url = "https://blockchain.info/rawblock/{0}".format(hash)
+	if debug:
+		print(url)
+	data = getURL(url)
 	if data.status_code == 200:
 		return json.loads(data.text)
 	elif data.status_code == 404: # block not fully processed
