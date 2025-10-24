@@ -11,7 +11,7 @@ hashTime = 0 # latest blocks time
 prevTime = 0 # prev block time
 block = {} # latest block as dict
 blockInterval = 0.0
-debug = True
+debug = False
 verbose = False
 logInterval = 30 # interval to log in seconds
 queryInterval = 15 # seconds between each query
@@ -37,11 +37,19 @@ def main():
 	global lastHash, block, hashTime
 	print("Started at {0} | {1}".format(start, date.fromtimestamp(start).ctime()))
 	init()
+	speed_blocks = 0 # blocks mined with query interval
 	while True:
 		try:
-			monitor(lastHash)
+			if monitor(lastHash) == False:
+				if speed_blocks > 1:
+					tsprint("Speed blocks: {0} | Hash (use previous): {1}".format(speed_blocks, lastHash))
+					speed_blocks = 0
+				else: #only one from the new hash
+					speed_blocks = 0
+			else:
+				speed_blocks += 1
 		except Exception as e:
-			print("Except:", e)
+			tsprint("Except:", e)
 		time.sleep(logInterval)
 
 def getBlockTime(data):
@@ -54,21 +62,24 @@ def monitor(hash):
 	t = getTime()
 	block = getBlockData(hash)
 	# not working properly
-	if len(block["next_block"]) == 0: # current block
+	if len(block["next_block"]) == 0: # current block, caught up
 		hashTime = block["time"] # update time
 		if prevTime != 0 and prevTime != hashTime: # 
-			logBlock()
+			# logBlock() # todo: 
 			# print("{0} prev {1} hashtime".format(prevTime, hashTime))
 			since = hashTime - prevTime
 			tsprint("Since last hash: {0} seconds".format(since))
 			logHashTime(since)
 			prevTime = hashTime
+		return False
 	else:
 		hash = block["next_block"][0]
 		lastHash = hash
 		tsprint("New block: {0}".format(hash))
 		prevTime = block["time"]
 		# prevTime = hashTime
+		logBlock()
+		return True
 
 def tsprint(text):
 	print("{0} | {1}".format(getTime(), text))
@@ -142,7 +153,7 @@ def getBlockData(hash):
 	retries = 0
 	url = "https://blockchain.info/rawblock/{0}".format(hash)
 	if debug:
-		print(url)
+		tsprint(url)
 	data = getURL(url)
 	if data.status_code == 200:
 		return json.loads(data.text)
@@ -163,7 +174,7 @@ def getBlockTime(bblock, net=False):
 		try:
 			return block["time"]
 		except:
-			print("Bad: {0}", block)
+			tsprint("Bad: {0}", block)
 			return
 
 """ Average time between blocks in seconds """
