@@ -6,6 +6,7 @@ import json
 import datetime
 from datetime import date
 
+# 1760685893
 lastHash = "" # latest hash in the chain
 hashTime = 0 # latest blocks time
 prevTime = 0 # prev block time
@@ -49,7 +50,7 @@ def main():
 			else:
 				speed_blocks += 1
 		except Exception as e:
-			tsprint("Except:", e)
+			tsprint("Except: {0}".format(e))
 		time.sleep(logInterval)
 
 def getBlockTime(data):
