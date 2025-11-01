@@ -162,7 +162,10 @@ def getBlockData(hash):
 		time.sleep(queryInterval*5)
 		return getBlockData(hash)
 	else:
-		print("Bad status:", data, data.text)
+		if len(data.text) < 512:
+			tsprint("Bad status: {0} |||| {1}".format(data, data.text))
+		else:
+			tsprint("Bad status: {0}".format(data))
 
 def getBlockTime(bblock, net=False):
 	global block
