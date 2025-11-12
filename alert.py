@@ -24,6 +24,8 @@ endpoints = {
 	"latestHash":"https://blockchain.info/q/latesthash",
 	# "latestBlock":"https://blockchain.info/latestblock",
 	# "nextBlockETA":"https://blockchain.info/q/eta",
+	# https://blockchain.info/q/24hrprice
+	# https://blockchain.info/q/marketcap
 }
 if len(endpoints) == 1:
 	logInterval = queryInterval
