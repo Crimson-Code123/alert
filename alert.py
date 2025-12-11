@@ -6,7 +6,10 @@ import json
 import datetime
 from datetime import date
 
-# 1760685893
+""" 
+1760685893 - Speed hashes
+1763522489 - app froze (restarted 1765477305)
+"""
 lastHash = "" # latest hash in the chain
 hashTime = 0 # latest blocks time
 prevTime = 0 # prev block time
@@ -85,7 +88,8 @@ def monitor(hash):
 		return True
 
 def tsprint(text):
-	print("{0} | {1}".format(getTime(), text))
+	dt = getTime()
+	print("{0}:{1} | {2}".format(dt, date.fromtimestamp(dt).ctime(), text))
 
 def LogAll():
 	global lastHash
@@ -204,7 +208,7 @@ def getETA():
 	return data.text
 
 def getURL(url):
-	return requests.get(url, headers=req_headers)
+	return requests.get(url, headers=req_headers, timeout=15)
 
 def getTime():
 	return int(time.time())
