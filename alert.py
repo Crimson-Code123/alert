@@ -15,6 +15,7 @@ hashTime = 0 # latest blocks time
 prevTime = 0 # prev block time
 block = {} # latest block as dict
 blockInterval = 0.0
+sblimit = 2
 debug = False
 verbose = False
 logInterval = 30 # interval to log in seconds
@@ -47,7 +48,7 @@ def main():
 	while True:
 		try:
 			if monitor(lastHash) == False:
-				if speed_blocks > 1:
+				if speed_blocks > sblimit:
 					tsprint("Speed blocks: {0} | Hash (use previous): {1}".format(speed_blocks, lastHash))
 					speed_blocks = 0
 				else: #only one from the new hash
