@@ -20,6 +20,7 @@ debug = False
 verbose = False
 logInterval = 30 # interval to log in seconds
 queryInterval = 15 # seconds between each query
+speed_blocks = 0 # blocks mined with query interval
 req_headers = {"User-Agent":"Mozilla/5.0 (X11; Linux x86_64; rv:143.0) Gecko/20100101 Firefox/143.0"}
 chartStats = "https://www.blockchain.com/explorer/charts"
 endpoints = {
@@ -41,10 +42,9 @@ def init():
 	time.sleep(5)
 
 def main():
-	global lastHash, block, hashTime
+	global lastHash, block, hashTime, speed_blocks
 	print("Started at {0} | {1}".format(start, date.fromtimestamp(start).ctime()))
 	init()
-	speed_blocks = 0 # blocks mined with query interval
 	while True:
 		try:
 			if monitor(lastHash) == False:
@@ -76,7 +76,8 @@ def monitor(hash):
 			# print("{0} prev {1} hashtime".format(prevTime, hashTime))
 			since = hashTime - prevTime
 			tsprint("Since last hash: {0} seconds".format(since))
-			logHashTime(since)
+			if speed_blocks > sblimit:
+				logHashTime(since)
 			prevTime = hashTime
 		return False
 	else:
